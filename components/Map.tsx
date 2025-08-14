@@ -64,14 +64,14 @@ export default function MapView({
     const selectedPlace = useMemo(() => places.find(p => p.id === selectedId) || null, [places, selectedId])
 
     return (
-        <MapContainer style={{ height: '100%', width: '100%' }} center={defaultCenter} zoom={12} scrollWheelZoom>
+        <MapContainer style={{ height: '100%', width: '100%' }} center={[defaultCenter[0], defaultCenter[1]]} zoom={12} scrollWheelZoom>
             <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
                 subdomains={['a', 'b', 'c', 'd']} />
             {center && <FlyTo lat={center.lat} lon={center.lon} zoom={13} />}
             {!center && places.length > 0 && <FitToPlaces places={places} />}
 
-            {/* Centro + radio */}
+            {/* Center + radius */}
             {center && (
                 <>
                     <Marker position={[center.lat, center.lon]} icon={iconCenter} />
@@ -79,7 +79,7 @@ export default function MapView({
                 </>
             )}
 
-            {/* Marcadores */}
+            {/* Markers */}
             {places.map((p, idx) => {
                 const isSel = p.id === selectedId
                 return (
@@ -99,7 +99,7 @@ export default function MapView({
                 )
             })}
 
-            {/* Enfoca al seleccionado */}
+            {/* Fly to selected place */}
             {selectedPlace && <FlyTo lat={selectedPlace.lat} lon={selectedPlace.lon} zoom={15} />}
         </MapContainer>
     )

@@ -44,7 +44,7 @@ export default function Search({ onSelect }: { onSelect: (f: Feature) => void })
                         value={q}
                         onValueChange={onValueChange}
                         className="text-sm w-full"
-                        placeholder="Search for a address…"
+                        placeholder="Search for an address…"
                         onFocus={() => setOpen(true)}
                     />
                     {q && (
@@ -59,19 +59,19 @@ export default function Search({ onSelect }: { onSelect: (f: Feature) => void })
                 </div>
             </Command>
 
-            {/* Lista flotante */}
+            {/* Floating list */}
             {open && (
                 <div className="absolute mt-1 w-full border rounded-lg bg-white shadow-lg max-h-64 overflow-auto">
                     <Command>
                         <CommandList>
                             {loading && (
                                 <div className="flex items-center gap-2 px-3 py-2 text-sm">
-                                    <Loader2 className="h-4 w-4 animate-spin" /> Buscando…
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Searching…
                                 </div>
                             )}
-                            {!loading && items.length === 0 && <CommandEmpty>Sin resultados</CommandEmpty>}
+                            {!loading && items.length === 0 && <CommandEmpty>No results</CommandEmpty>}
                             {items.length > 0 && (
-                                <CommandGroup heading="Sugerencias">
+                                <CommandGroup heading="Suggestions">
                                     {items.map((it) => (
                                         <CommandItem
                                             key={it.id}

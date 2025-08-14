@@ -23,7 +23,7 @@ export default function ResultsList({
                 </ul>
             )}
             {!loading && places.length === 0 && (
-                <div className="p-6 text-sm text-gray-500">Sin resultados. Cambia el radio o el centro.</div>
+                <div className="p-6 text-sm text-gray-500">No results. Change the radius or the center.</div>
             )}
             {!loading && places.length > 0 && (
                 <ul className="divide-y">

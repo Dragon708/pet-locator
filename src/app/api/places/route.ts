@@ -20,22 +20,20 @@ export async function GET(req: Request) {
         'service:animal_grooming=*',
     ]
 
-    // Construir query por tags
+    // Get places
     const allResults: any[] = []
-    for (const tag of tags) {
-        const apiUrl = process.env.API_URL
-        const url = `${apiUrl}/api/places?lat=${lat}&lon=${lon}&radius=${radius}`
-        const r = await fetch(url)
-        console.log(r)
-        if (r.ok) {
-            const data = await r.json()
-            if (Array.isArray(data)) {
-                allResults.push(...data)
-            }
+    const apiUrl = process.env.API_URL
+    const url = `${apiUrl}/api/places?lat=${lat}&lon=${lon}&radius=${radius}`
+    const r = await fetch(url)
+    console.log(r)
+    if (r.ok) {
+        const data = await r.json()
+        if (Array.isArray(data)) {
+            allResults.push(...data)
         }
     }
 
-    // Limpiar duplicados por place_id
+    // Remove duplicates by place_id
     const unique = Object.values(
         allResults.reduce((acc, item) => {
             acc[item.place_id] = item

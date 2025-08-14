@@ -1,5 +1,7 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import Head from 'next/head'
+import { useCallback, useEffect, useState } from 'react'
 import MapView from '../../components/Map'
 import Search from '../../components/Search'
 
@@ -10,34 +12,63 @@ export default function HomePage() {
   const [center, setCenter] = useState<{ lat: number, lon: number } | null>(null)
   const [places, setPlaces] = useState<Place[]>([])
   const [radius, setRadius] = useState(4000)
+  const [loading, setLoading] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  useEffect(() => {
-    const load = async () => {
-      if (!center) return
+  const loadPlaces = useCallback(async () => {
+    if (!center) return
+    setLoading(true)
+    try {
       const r = await fetch(`/api/places?lat=${center.lat}&lon=${center.lon}&radius=${radius}`)
       const data = await r.json()
       setPlaces(data.places || [])
+      setSelectedId(null)
+    } finally {
+      setLoading(false)
     }
-    load()
   }, [center, radius])
 
+  useEffect(() => { loadPlaces() }, [loadPlaces])
+
+  const handleSelectFeature = (f: Feature) => setCenter({ lat: f.lat, lon: f.lon })
+
+  const locateMe = () => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCenter({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      () => { /* ignore */ },
+      { enableHighAccuracy: true, timeout: 10_000 }
+    )
+  }
+
   return (
-    <main>
-      <section className="py-16 text-center">
-        <h1 className="text-3xl font-bold mb-3">Encuentra servicios para mascotas cerca</h1>
-        <Search onSelect={(f: Feature) => setCenter({ lat: f.lat, lon: f.lon })} />
-        <div className="text-sm mt-3">
-          Radio:
-          <select className="ml-2 border rounded px-2 py-1" value={radius} onChange={e => setRadius(Number(e.target.value))}>
-            <option value={2000}>2 km</option>
-            <option value={4000}>4 km</option>
-            <option value={8000}>8 km</option>
-          </select>
+    <>
+      {/* SEO */}
+      <Head>
+        <title>🐶 PetFinder — Find Vets Near You</title>
+        <meta
+          name="description"
+          content="PetFinder helps you quickly find nearby veterinarians and pet services based on your location."
+        />
+      </Head>
+
+      <main className="h-[calc(100dvh)] md:h-[100vh] relative">
+        {/* Floating Title */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-[2000]">
+          <span className="text-2xl">🐶</span>
+          <h1 className="text-lg font-semibold text-gray-800">
+            PetFinder — Find a Veterinarian Near You
+          </h1>
         </div>
-      </section>
-      <section className="px-4 pb-16">
-        <MapView center={center} places={places} />
-      </section>
-    </main>
+
+        <div className="grid md:grid-cols-[420px,1fr] h-full">
+          {/* Map + Search */}
+          <section className="relative h-full">
+            <Search onSelect={handleSelectFeature} />
+            <MapView center={center} places={places} />
+          </section>
+        </div>
+      </main>
+    </>
   )
 }

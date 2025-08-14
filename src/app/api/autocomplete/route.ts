@@ -7,11 +7,18 @@ export async function GET(req: Request) {
     const limit = Number(searchParams.get('limit') || 6)
 
     if (!q) return NextResponse.json({ features: [] })
+    const apiUrl = process.env.API_URL
+    const url = `${apiUrl}/api/autocomplete?query=${encodeURIComponent(q)}`
+    console.log(url)
 
-    const url = `https://us1.locationiq.com/v1/autocomplete?key=${process.env.LOCATIONIQ_KEY}&q=${encodeURIComponent(q)}&limit=${limit}&normalizeaddress=1`
-
-    const r = await fetch(url)
-    const data = await r.json()
+    let data: any[] = []
+    try {
+        const r = await fetch(url)
+        data = await r.json()
+    } catch (error) {
+        console.error(error)
+        return NextResponse.json({ features: [] })
+    }
 
     const features = (data || []).map((f: any) => ({
         id: f.place_id,

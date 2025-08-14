@@ -23,7 +23,8 @@ export async function GET(req: Request) {
     // Construir query por tags
     const allResults: any[] = []
     for (const tag of tags) {
-        const url = `https://us1.locationiq.com/v1/nearby?key=${process.env.LOCATIONIQ_KEY}&lat=${lat}&lon=${lon}&tag=school&radius=${radius}&format=json`
+        const apiUrl = process.env.API_URL
+        const url = `${apiUrl}/api/places?lat=${lat}&lon=${lon}&radius=${radius}`
         const r = await fetch(url)
         console.log(r)
         if (r.ok) {

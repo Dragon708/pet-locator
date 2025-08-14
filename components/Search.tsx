@@ -1,5 +1,8 @@
 'use client'
-import { useEffect, useMemo, useState } from 'react'
+
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { Loader2, MapPin, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 type Feature = { id: string | number, name: string, label: string, lat: number, lon: number }
 
@@ -7,47 +10,86 @@ export default function Search({ onSelect }: { onSelect: (f: Feature) => void })
     const [q, setQ] = useState('')
     const [items, setItems] = useState<Feature[]>([])
     const [loading, setLoading] = useState(false)
+    const [open, setOpen] = useState(false)
+    const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    const debouncedFetch = useMemo(() => {
-        let t: any
-        return (value: string) => {
-            clearTimeout(t)
-            t = setTimeout(async () => {
-                if (!value || value.length < 2) { setItems([]); return }
-                setLoading(true)
-                try {
-                    const r = await fetch(`/api/autocomplete?q=${encodeURIComponent(value)}`)
-                    const data = await r.json()
-                    setItems(data.features || [])
-                } finally {
-                    setLoading(false)
-                }
-            }, 250)
+    const fetchResults = async (value: string) => {
+        if (!value || value.trim().length < 2) { setItems([]); return }
+        setLoading(true)
+        try {
+            const r = await fetch(`/api/autocomplete?q=${encodeURIComponent(value)}`)
+            const data = await r.json()
+            setItems(data.features || [])
+        } finally {
+            setLoading(false)
         }
-    }, [])
+    }
 
-    useEffect(() => { debouncedFetch(q) }, [q, debouncedFetch])
+    const onValueChange = (val: string) => {
+        setQ(val)
+        if (timer.current) clearTimeout(timer.current)
+        timer.current = setTimeout(() => fetchResults(val), 250)
+        if (!open) setOpen(true)
+    }
+
+    useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
     return (
-        <div className="w-full max-w-xl mx-auto relative">
-            <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Busca una ciudad, barrio o dirección…"
-                className="w-full border rounded-lg px-4 py-3 shadow-sm outline-none"
-            />
-            {loading && <div className="absolute right-3 top-3 text-sm opacity-60">…</div>}
-            {items.length > 0 && (
-                <ul className="absolute z-10 mt-2 w-full bg-white text-black border rounded-lg max-h-72 overflow-auto shadow">
-                    {items.map((it) => (
-                        <li key={it.id}
-                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                            onClick={() => { onSelect(it); setItems([]); }}>
-                            {it.label}
-                        </li>
-                    ))}
-                </ul>
+        <div className="absolute top-4 left-[5%] z-[1000] w-80">
+            {/* Input */}
+            <Command className="border rounded-lg shadow-md bg-white relative">
+                <div className="flex items-center gap-2 px-2 w-full pt-2 pb-1">
+                    <MapPin className="h-4 w-4 opacity-70" />
+                    <CommandInput
+                        value={q}
+                        onValueChange={onValueChange}
+                        className="text-sm w-full"
+                        placeholder="Search for a address…"
+                        onFocus={() => setOpen(true)}
+                    />
+                    {q && (
+                        <button
+                            type="button"
+                            onClick={() => { setQ(''); setItems([]) }}
+                            className="ml-auto text-gray-400 hover:text-gray-600"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
+            </Command>
+
+            {/* Lista flotante */}
+            {open && (
+                <div className="absolute mt-1 w-full border rounded-lg bg-white shadow-lg max-h-64 overflow-auto">
+                    <Command>
+                        <CommandList>
+                            {loading && (
+                                <div className="flex items-center gap-2 px-3 py-2 text-sm">
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Buscando…
+                                </div>
+                            )}
+                            {!loading && items.length === 0 && <CommandEmpty>Sin resultados</CommandEmpty>}
+                            {items.length > 0 && (
+                                <CommandGroup heading="Sugerencias">
+                                    {items.map((it) => (
+                                        <CommandItem
+                                            key={it.id}
+                                            value={String(it.label)}
+                                            onSelect={() => { onSelect(it); setQ(it.label); setOpen(false) }}
+                                            className="cursor-pointer"
+                                        >
+                                            {it.label}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            )}
+                        </CommandList>
+                    </Command>
+                </div>
             )}
+
+
         </div>
     )
 }

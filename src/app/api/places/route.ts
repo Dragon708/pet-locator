@@ -22,7 +22,7 @@ export async function GET(req: Request) {
 
     // Get places
     const allResults: any[] = []
-    const apiUrl = process.env.API_URL
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
     const url = `${apiUrl}/api/places?lat=${lat}&lon=${lon}&radius=${radius}`
     const r = await fetch(url)
     console.log(r)

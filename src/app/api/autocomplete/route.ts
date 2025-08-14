@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     // const limit = Number(searchParams.get('limit') || 6)
 
     if (!q) return NextResponse.json({ features: [] })
-    const apiUrl = process.env.API_URL
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
     const url = `${apiUrl}/api/autocomplete?query=${encodeURIComponent(q)}`
     console.log(url)
 
